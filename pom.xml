@@ -1,0 +1,43 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>top.marchand.xml</groupId>
+  <artifactId>xml-prague-2018</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>top.marchand.xml.maven</groupId>
+        <artifactId>catalogBuilder-maven-plugin</artifactId>
+        <version>1.0.5</version>
+      </plugin>
+      <plugin>
+        <groupId>io.xspec.maven</groupId>
+        <artifactId>xspec-maven-plugin</artifactId>
+        <version>1.5.1-RC6</version>
+        <configuration>
+          <generate-surefire>true</generate-surefire>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>test</phase>
+            <goals>
+              <goal>run-xspec</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>net.sf.saxon</groupId>
+            <artifactId>Saxon-HE</artifactId>
+            <version>9.7.0-13</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

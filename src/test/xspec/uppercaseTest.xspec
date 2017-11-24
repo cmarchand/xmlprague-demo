@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<x:description 
+  xmlns:x="http://www.jenitennison.com/xslt/xspec" 
+  stylesheet="../../main/xsl/uppercase.xsl">
+  <x:scenario label="Scenario for testing template with match 'text()">
+    <x:context >
+      <data>this is lowercase text</data>
+    </x:context>
+    <x:expect label="'Uppercased'" >THIS IS LOWERCASE TEXT</x:expect>
+  </x:scenario>
+</x:description>
