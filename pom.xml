@@ -7,12 +7,27 @@
   <artifactId>xml-prague-2018</artifactId>
   <version>1.0-SNAPSHOT</version>
   
+  <dependencies>
+    <dependency>
+      <groupId>top.marchand.xml.libraries</groupId>
+      <artifactId>demo</artifactId>
+      <version>1.1</version>
+    </dependency>
+  </dependencies>
+  
   <build>
     <plugins>
       <plugin>
         <groupId>top.marchand.xml.maven</groupId>
         <artifactId>catalogBuilder-maven-plugin</artifactId>
         <version>1.0.5</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>catalog</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>io.xspec.maven</groupId>
@@ -20,6 +35,7 @@
         <version>1.5.1-RC6</version>
         <configuration>
           <generate-surefire>true</generate-surefire>
+          <catalogFile>catalog.xml</catalogFile>
         </configuration>
         <executions>
           <execution>

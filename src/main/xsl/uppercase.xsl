@@ -5,6 +5,9 @@
   xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl"
   exclude-result-prefixes="xs math xd"
   version="3.0">
+
+  <xsl:import href="demo:/demo/uppercase-elements.xsl"/>
+
   <xd:doc scope="stylesheet">
     <xd:desc>
       <xd:p><xd:b>Created on:</xd:b> Nov 23, 2017</xd:p>
@@ -12,6 +15,7 @@
       <xd:p></xd:p>
     </xd:desc>
   </xd:doc>
+  
   
   <xsl:template match="text()">
     <xsl:value-of select="upper-case(.)"/>

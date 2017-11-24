@@ -6,6 +6,8 @@
     <x:context >
       <data>this is lowercase text</data>
     </x:context>
-    <x:expect label="'Uppercased'" >THIS IS LOWERCASE TEXT</x:expect>
+    <x:expect label="'Uppercased'" >
+      <DATA>THIS IS LOWERCASE TEXT</DATA>
+    </x:expect>
   </x:scenario>
 </x:description>
