@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<project name="XMLPrague 2018 - Maven">
+  <body>
+    <menu name="Proceeding">
+      <item name="Abstract" href="abstract.html"/>
+      <item name="Table of Contents" href="toc.html"/>
+      <item name="Introduction" href="introduction.html"/>
+    </menu>
+  </body>
+</project>

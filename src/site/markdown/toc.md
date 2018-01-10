@@ -1,0 +1,14 @@
+ - Abstract
+ - Introduction
+ - Context
+    - What is an XML development Project ?
+    - Which technologies do we use ?
+    - Which unit tests framework do we use ?
+    - How do we document code ?
+    - How do we re-use existing code ?
+    - How do we package the delivery ?
+ - Needs
+    - A dependency management system to allow easy code re-use
+    - An automatic build & packaging system to produce delivery
+    - A way to publish documentation to other developers
+    - A way to separate and freeze snapshots and releases 
