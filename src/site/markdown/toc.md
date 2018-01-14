@@ -1,14 +1,44 @@
  - Abstract
  - Introduction
- - Context
+ - [Context](context.html)
     - What is an XML development Project ?
     - Which technologies do we use ?
     - Which unit tests framework do we use ?
     - How do we document code ?
     - How do we re-use existing code ?
     - How do we package the delivery ?
- - Needs
+ - [Needs](needs.html)
     - A dependency management system to allow easy code re-use
+    - A way to run unit tests before each build 
     - An automatic build & packaging system to produce delivery
+    - A repeatable process to build (which does not depends on externs tools)
+    - A build system that can be launch on each commit on SCM
     - A way to publish documentation to other developers
-    - A way to separate and freeze snapshots and releases 
+    - A way to separate and freeze snapshots and releases
+    - A way to check that a release rely only on release dependencies 
+    - A way where build is not defined by a script - where there is code - only by configuration (that do not need unit tests)
+    - Solution must rely on strong technologies, standardized ways to code in XML
+ - [Solutions](solutions.html)
+    - Maven is an automatic way to build
+    - Maven offers dependency management
+    - Maven is only configuration, no code is required to build project
+    - Maven offers a strandard process to process compile, unit tests, packaging, doc generate, etc...
+    - Maven is able to publish deliveries to artifact repositories
+    - Artifact repositories have a distinct behavior between snapshots and releases
+    - Artifact repositories guarantee that a release is never overriden
+    - Maven projects are easily run by Jenkins
+    - Jenkins is able to build a project each time a commit is done in SCM (or at least in a short time interval)
+    - Maven is a plugin orchestrator, and may be enhanced xwith new plugins
+ - Alternates solutions (not used)
+    - Ant is a repeatable way to build
+    - Ant is able to publish deliveries to artifact repositories
+    - Ant is a script language
+    - Gradle is a Maven like, more concise
+    - Gradle may be enhanced with code 
+ - Details on selected solution
+    - Need to split code (code copy is not accptable)
+    - Each part of code that can be reused must be packaged as a single artifact
+    - Using a dependency must be easy : a declaration in build configuration, and a simple include/import mecanism
+    - Must have absolute URIs to access a resource in a dependency -> using new protocols to design a resource in a dependency
+    - Using XML catalogs to map the resource URI to a real location on disk. Catalogs are generated on each dev box
+     
