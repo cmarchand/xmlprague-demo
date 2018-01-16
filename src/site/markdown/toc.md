@@ -1,13 +1,13 @@
  - Abstract
  - Introduction
- - [Context](context.html)
+ - [Context](context.md)
     - What is an XML development Project ?
     - Which technologies do we use ?
     - Which unit tests framework do we use ?
     - How do we document code ?
     - How do we re-use existing code ?
     - How do we package the delivery ?
- - [Needs](needs.html)
+ - [Needs](needs.md)
     - A dependency management system to allow easy code re-use
     - A way to run unit tests before each build 
     - An automatic build & packaging system to produce delivery
@@ -18,7 +18,7 @@
     - A way to check that a release rely only on release dependencies 
     - A way where build is not defined by a script - where there is code - only by configuration (that do not need unit tests)
     - Solution must rely on strong technologies, standardized ways to code in XML
- - [Solutions](solutions.html)
+ - [Solutions](solutions.md)
     - Maven is an automatic way to build
     - Maven offers dependency management
     - Maven is only configuration, no code is required to build project
@@ -36,9 +36,9 @@
     - Gradle is a Maven like, more concise
     - Gradle may be enhanced with code 
  - Details on selected solution
-    - Need to split code (code copy is not accptable)
+    - Need to split code (code duplication is not acceptable)
     - Each part of code that can be reused must be packaged as a single artifact
     - Using a dependency must be easy : a declaration in build configuration, and a simple include/import mecanism
     - Must have absolute URIs to access a resource in a dependency -> using new protocols to design a resource in a dependency
     - Using XML catalogs to map the resource URI to a real location on disk. Catalogs are generated on each dev box
-     
+ - [Resume](resume.md)

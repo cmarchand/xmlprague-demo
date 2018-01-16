@@ -1,7 +1,7 @@
 # XML Prague 2018
 
 ## Using Maven with XML development projects
-[TOC](toc.html)
+[TOC](toc.md)
 
 ### Solutions
 
@@ -43,6 +43,8 @@ Some phases are not in lifecycle, and do not have prerequisites :
 
 At each phase, plugins are bound. When a phase is executed, all plugins bound to this phase are executed. If one execution 
 fails, all the build fails. If we need to extend maven build, we just have to declare a new plugin, and bind it to a phase.
+
+**[FIXME:mricaud:same order than wish list => dependency first?]**
 
 #### Unit tests
 
@@ -98,7 +100,7 @@ commit in SCM.
 In a Java Maven project, when using an external libray is required, it's enough to declare a `dependency` in project
 descriptor, `pom.xml`. If we want to use Saxon-HE 9.8.0-7 in our artifact, we just have to declare :
  
-       <dependencies>
+     <dependencies>
         <dependency>
           <groupId>net.sf.saxon</groupId>
           <artifactId>Saxon-HE</artifactId>
@@ -118,6 +120,9 @@ the usual way to construct a path in URIs is used to point a resource.
 
  - if we want to reference the `net.sf.saxon.Transform` class in Saxon-HE 9.8.0-7 dependency, we'd construct 
  `Saxon-HE:/net/sf/saxon/Transformer.class`
+ 
+ **[FIXME:mricaud:really?]**
+ 
  - if we want to reference the `file-utils.xsl`in (eu.els.common, xslLibrary, 3.1.7), we'd use `xslLibrary:/file-utils.xsl`
 
 As it is common to change a dependency version, version is not included in URI ; hence, when changing a dependency version,
@@ -128,17 +133,18 @@ We may have xsl with imports based on this URI syntax :
     <?xml version="1.0" encoding="UTF-8"?>
     <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
       xmlns:xs="http://www.w3.org/2001/XMLSchema" 
-      xmlns:xfSAS="http://www.lefebvre-sarrut.eu/ns/xmlfirst/sas"
+      xmlns:xf-sas="http://www.lefebvre-sarrut.eu/ns/xmlfirst/sas"
       exclude-result-prefixes="#all" 
       version="3.0">
       <xsl:import href="xf-sas:/xf-sas/efl/memento_bu/mem2ee.alphamem.xsl"/>
 
 At `ìnitialize` Maven phase, so in very beginnning of build lifecycle, we do use a plugin that generates a catalog, based on
 dependencies declared in pom.xml. This catalog is generated at each build, so always denotes dependencies declaration available
-in project descriptor. It declares `rewriteURI` and `ewriteSystem` entries, that maps protocol to jar file. 
+in project descriptor. It declares `rewriteURI` and `rewriteSystem` entries, that maps protocol to jar file. 
 
-The catalog includes dependencies that do contains XML resources, but also all other dependencies, including the ones that do
-not contains XML resources that could be accessed through resolve process that rely on a catalog.
+**[FIXME:mricaud:explain where the jar file is stored localy?]**
+
+The catalog includes dependencies that do contains XML resources, but also all other dependencies, including the ones that do not contains XML resources that could be accessed through resolve process that rely on a catalog.
 
     <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE catalog PUBLIC 
@@ -154,3 +160,5 @@ not contains XML resources that could be accessed through resolve process that r
     </catalog>
 
 This catalog is then used by all XML tools, including Maven plugins that do manipulate XML files, XSpec maven plugin for example.
+
+**[FIXME:mricaud:working localy with Oxygen?]**
