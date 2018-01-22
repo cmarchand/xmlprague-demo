@@ -3,11 +3,12 @@
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:math="http://www.w3.org/2005/xpath-functions/math"
   xmlns:xd="http://www.oxygenxml.com/ns/doc/xsl"
+  xmlns:cm="top:marchand:xml"
   exclude-result-prefixes="xs math xd"
   version="3.0">
 
   <xsl:import href="demo:/demo/uppercase-elements.xsl"/>
-
+  
   <xd:doc scope="stylesheet">
     <xd:desc>
       <xd:p><xd:b>Created on:</xd:b> Nov 23, 2017</xd:p>

@@ -36,9 +36,8 @@
     - Gradle is a Maven like, more concise
     - Gradle may be enhanced with code 
  - Details on selected solution
-    - Need to split code (code copy is not accptable)
+    - Need to split code (code duplication is not acceptable)
     - Each part of code that can be reused must be packaged as a single artifact
     - Using a dependency must be easy : a declaration in build configuration, and a simple include/import mecanism
     - Must have absolute URIs to access a resource in a dependency -> using new protocols to design a resource in a dependency
     - Using XML catalogs to map the resource URI to a real location on disk. Catalogs are generated on each dev box
-     
