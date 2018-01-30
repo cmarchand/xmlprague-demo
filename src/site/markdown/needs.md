@@ -15,19 +15,21 @@ We had many requirements on the development organization :
     - It improves quality  
  **That implies a simple way to re-use existing code.**  
  - we want common code changes won't break every projects using it :
-    - we want to ba able to separate each chunk of code, and identify each version with no ambiquity
+    - we want to be able to separate each chunk of code, and identify each version with no ambiquity
       **to produce deliveries that can be identifed as deliveries and not as source code**. Let's call this an artifact.
     - we must be able to distinguish a stable release (an artifact we know exactly which commit of code has produced it), 
-      from a developement one (an artifact that is still under development, and that may change from one day to another)
+      from a development one (an artifact that is still under development, and that may change from one day to another)
     - we must ensure that a release artifact can not be re-build : i.e. a release artifact can not be modified
+    - when we re-use a piece of existing code, we want to reference it, through a release artifact reference ; hence, we are
+      sure the referenced code will never be modified
  - we want every artifact version being accessible from any other project easily
     - we need to publish build artifacts to a central repository ; this central repository will be then used to get artifacts
       when needed
- - we must ensure that unit tests are always successfully run before building an artifact.
+ - we must ensure that unit tests are always successfully run before building an artifact
  - we must be able to deploy programs to target locations from the central repository
     - a "program" is usually an aggregation of many artifacts
  - last but not least, we want all these requirements to work the same way for our editorial XML based languages :
-   Java, XSLT, XQUERY, SCHEMATRON, DTD, XSD Schema, Relax NG, etc..
+   Java, XSLT, XQUERY, SCHEMATRON, DTD, XSD Schema, Relax NG, etc.. Hence, developer's training is not to expensive 
  
 We also have some wishes :
 

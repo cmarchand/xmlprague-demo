@@ -55,5 +55,20 @@
       </plugin>
     </plugins>
   </build>
+  
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>top.marchand.xml</groupId>
+        <artifactId>xslDoc-maven-plugin</artifactId>
+        <version>0.5</version>
+      </plugin>
+      <plugin>
+        <groupId>top.marchand.xml</groupId>
+        <artifactId>xquerydoc-maven-plugin</artifactId>
+        <version>0.1</version>
+      </plugin>
+    </plugins>
+  </reporting>
 
 </project>
