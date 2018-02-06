@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://docbook.org/xml/5.0/rng/docbook.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<?xml-model href="http://docbook.org/xml/5.0/rng/docbook.rng" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<article xmlns="http://docbook.org/ns/docbook"
+    xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0">
+    <info>
+        <title>Using Maven with XML development projects</title>
+        <authorgroup>
+            <author>
+                <orgname>Christophe Marchand - Oxiane</orgname>
+                <email>cmarchand@oxiane.com</email>
+            </author>
+            <author>
+                <orgname>Matthieu Ricaud-Dussarget - Lefebvre Sarrut</orgname>
+                <email>m.ricaud-dussarget@lefebvre-sarrut.eu</email>
+            </author>
+        </authorgroup>
+    </info>
+    <sect1>
+        <title>Context</title>
+        <para>I'm a Java developper, since many years. I've seen and used many build systems, from a simple document that explains how to build, to a configured build descriptor. Most of build systems I've used are script-like systems. Maven is a build descriptor, where all the build phases are configured, not scripted. Maven has been used since 2009, and widely used since 2012. I've worked on many projects where provided data was XML. Those projects where mostly Java projects, embedding few XML  technologies, as XPath and XSL. In 2015, I started a new contract in ELS, a publishing company, where the most important part of code were XML languages, as XSL, XQuery, XProc, RelaxNG, and so on ; they are all familiars to you.</para>
+        <para>I've been very surprised that some projects didn't used correctly Source Control Management, that some projects where deployed on servers from a SVN checkout, that some projects did not have unit tests, that there were no standard way to build a project, and to deploy it on a target box.</para>
+        <para>I've started to work to define a standard way to define a project, to organize sources, to build, to run unit tests, and to define a way to avoid code duplication.</para>
+    </sect1>
+    <sect1>
+        <title>Needs</title>
+        <para>We had many requirements on the development organization :</para>
+        <itemizedlist>
+            <listitem>
+                <para>we must ensure that code is not duplicated anywhere in our projects</para>
+                <itemizedlist>
+                    <listitem><para>Maintaining such code properly becomes a nightmare as the time goes</para></listitem>
+                    <listitem><para>XML technologies generally have a strong ability to deal with overriding rule (xsd, xslt, etc.) : it makes possible to create common code at any level in a logical architecture</para></listitem>
+                    <listitem><para>It helps in creating specific/generic code architecture</para></listitem>
+                    <listitem><para>It improves quality ; <emphasis>That implies a simple way to re-use existing code</emphasis></para></listitem>
+                </itemizedlist>
+            </listitem>
+            <listitem>
+                <para>we want common code changes won't break every projects using it :</para>
+                <itemizedlist>
+                    <listitem><para>we want to be able to separate each chunk of code, and identify each version with no ambiquity <emphasis>to produce deliveries that can be identifed as deliveries and not as source code</emphasis>. Let's call this an <glossterm>artifact</glossterm></para></listitem>
+                    <listitem><para>we must be able to distinguish a stable release (an artifact we know exactly which commit of code has produced it), from a development one (an artifact that is still under development, and that may change from one day to another)</para></listitem>
+                    <listitem><para>we must ensure that a release artifact can not be re-build : i.e. a release artifact can not be modified</para></listitem>
+                    <listitem><para>when we re-use a piece of existing code, we want to reference it, through a release artifact reference ; hence, we are sure the referenced code will never be modified we want every artifact version being accessible from any other project easily</para></listitem>
+                    <listitem><para>we need to publish build artifacts to a central repository ; this central repository will be then used to get artifacts when needed</para></listitem>
+                </itemizedlist>
+            </listitem>
+            <listitem><para>we must ensure that unit tests are always successfully run before building an artifact</para></listitem>
+            <listitem>
+                <para>we must be able to deploy programs to target locations from the central repository</para>
+                <itemizedlist>
+                    <listitem><para>a "program" is usually an aggregate of many artifacts, with a shell</para></listitem>
+                </itemizedlist>
+            </listitem>
+            <listitem><para>last but not least, we want all these requirements to work the same way for all our editorial languages : XSLT, XQUERY, SCHEMATRON, DTD, XSD Schema, Relax NG, … and Java ! All programs we deploy are Java programs, either run directly, or launch by an orchestrator. Finally, we deploy Java programs, who run XSLT, Xquery, or other XML languages.</para></listitem>
+        </itemizedlist>
+        <para>We also had some wishes :</para>
+        <itemizedlist>
+            <listitem><para>we'd like that release artifacts can only be build by a dedicated build environment ; this ensures that build command and options are always the same, and that build is not performed locally by a developer, with special options. Well, we'd like that release buid could be repeat in case of a massive crash.</para></listitem>
+            <listitem>
+                <para>we'd like to deploy only compiled code</para>
+                <itemizedlist>
+                    <listitem><para>most of language specifications define a compile process (well, static errors, at least)</para></listitem>
+                    <listitem><para>only XSLT 3.0 has defined that a XSL can be compiled, moved, and then run elsewhere. So, a compiled form exists, even if it is not standardized.</para></listitem>
+                    <listitem><para>other languages may defined some compile-like process,</para></listitem>
+                    <listitem><para>we may have some transformations to apply to source code before it can be accepted as "compiled"</para></listitem>
+                    <listitem><para>we could define that compilation step is any operation that transform a source code to a build code.</para></listitem>
+                </itemizedlist>
+            </listitem>
+            <listitem><para>we'd like to be able to generate code</para></listitem>
+            <listitem><para>we'd like to be able to validate an XML file, as a condition to build artifact</para></listitem>
+            <listitem><para>we'd like that developer documentation will be published on a Web server each time a build is performed. Hence, a developer who wants to use a particular artifact is able to find the documentation of this artifact.</para></listitem>
+        </itemizedlist>
+    </sect1>
+    <sect1>
+        <title>Solutions</title>
+        <para>ELS has tested various tools and frameworks to manage their project management requirements (mainly XProject, EXPath, ant). XProject defines a project structure, but lacks on version management. EXPath has a repository, but each repository should be manually fed by modules ; it is widely used by XSLT and XQuery engines, but not really suited to create Java programs that embed EXPath modules, and is so not suited to a scalable architecture, where Java components could be dynamically deployed on many servers. Ant allows everything, but ant is a scripting system, and scripts should have their own unit tests, which is never done.</para>
+        <para>The only one that satifies all requirements is Maven. But Maven does not provides plugins for a lot of tasks we need.</para>
+        <para>Maven has a standard way to build : phases lifecycle. Build has a lifecycle, and phases are sequentially organized through this lifecycle ; one phase can not be executed if all previous phases have not been successfully executed.</para>
+        <para>According to Maven documentation<footnote><para><link xlink:href="http://maven.apache.org/ref/3.5.0/maven-core/lifecycles.html"/></para></footnote>, lifecycle phases are :</para>
+        <itemizedlist spacing="compact">
+            <listitem><para>validate</para></listitem>
+            <listitem><para>initialize</para></listitem>
+            <listitem><para>generate-sources</para></listitem>
+            <listitem><para>process-sources</para></listitem>
+            <listitem><para>generate-resources</para></listitem>
+            <listitem><para>process-resources</para></listitem>
+            <listitem><para>compile</para></listitem>
+            <listitem><para>process-classes</para></listitem>
+            <listitem><para>generate-test-sources</para></listitem>
+            <listitem><para>process-test-sources</para></listitem>
+            <listitem><para>generate-test-resources</para></listitem>
+            <listitem><para>process-test-resources</para></listitem>
+            <listitem><para>test-compile</para></listitem>
+            <listitem><para>process-test-classes</para></listitem>
+            <listitem><para>test</para></listitem>
+            <listitem><para>prepare-package</para></listitem>
+            <listitem><para>package</para></listitem>
+            <listitem><para>pre-integration-test</para></listitem>
+            <listitem><para>integration-test</para></listitem>
+            <listitem><para>post-integration-test</para></listitem>
+            <listitem><para>verify</para></listitem>
+            <listitem><para>install</para></listitem>
+            <listitem><para>deploy</para></listitem>
+        </itemizedlist>
+        <para>Some phases are not in lifecycle, and do not have prerequisites :</para>
+        <itemizedlist>
+            <listitem><para>clean</para></listitem>
+            <listitem><para>site</para></listitem>
+        </itemizedlist>
+        <para>At each phase, plugins are bound. When a phase is executed, all plugins bound to this phase are executed. If one execution  fails, all the build fails. If we need to extend maven build, we just have to declare a new plugin, and bind it to a phase.</para>
+        <sect2>
+            <title>Dependency management</title>
+            <para>We do not want to have code duplicated. We all have, in our projects, references to other chunks of code, in other projects. We all have a copy of <filename>functx.xsl</filename><footnote><para>Priscilla Walmsley <filename>functx.xsl</filename>, <link xlink:href="http://www.xsltfunctions.com/xsl/download.html">http://www.xsltfunctions.com/xsl/download.html</link></para></footnote>, copied from project to project ! As there is no common mecanism to resolve those kinds of links in XML world, the usual way to solve this is to copy the code from source project, into other project where we need it. Others reference a GIT commit from another project, and check out this commit into project. Git as such a mecanism, but even if code is not duplicated, files are, and may be modified in host project. We want to rely on existing code, that has been build accordingly to our requirements, so we need to have :</para>
+            <itemizedlist>
+                <listitem><para>a way to store in a repository all release artifacts that have been build</para></listitem>
+                <listitem><para>a way to reference an artifact we want to use (according to usual designation method)</para></listitem>
+                <listitem><para>a way to access to a resource in an artifact.</para></listitem>
+            </itemizedlist>
+            <para>Maven has a way to uniquely identify an artifact : <code>(groupId:artifactId:version)</code>. <glossterm>groupId</glossterm> represents a unique key to project, and is based on Java package naming conventions ; <glossterm>artifactId</glossterm> represents something that is build by a maven module ; it must be unique per groupId ; <glossterm>version</glossterm> represents the artifact version ; a version that ends with <code>-SNAPSHOT</code> is a snapshot, and is not strictly bound to a commit in SCM. All other strings represent a release, which is supposed to be uniquely bound to a sole commit in SCM.</para>
+            <para>In a Java Maven project, when using an external libray is required, it's enough to declare a <glossterm>dependency</glossterm> in project descriptor, <glossterm><filename>pom.xml</filename></glossterm>. If we want to use Saxon-HE 9.8.0-7 in our artifact, we just have to declare :</para>
+            <programlisting language="xml"><![CDATA[
+<dependencies>
+    <dependency>
+        <groupId>net.sf.saxon</groupId>
+        <artifactId>Saxon-HE</artifactId>
+        <version>9.8.0-7</version>
+    </dependency>
+</dependencies>]]></programlisting>
+            <para>When Maven builds project, Maven downloads artifacts from central repository, copy them into a local repository, and constructs a classpath based on dependencies listed in pom. Included dependencies may declare other dependencies, and a full classpath is construct, based on the full dependency tree.</para>
+            <para>All resources in all jars declared as dependencies are accessible through standard Java resource loading mecanism : <code>getClass().getResource("/upper-case.xsl")</code>.</para>
+            <para>So, during build, Maven knows the location of jars pointed by dependencies ; they all are in local repository.</para>
+            <para>We decided to reference resources in external projects via the standard Maven dependency mecanism, and by constructing URIs that can point a resource in a dependency. Each dependency is associated to a custom <glossterm>URI protocol</glossterm> which is its <code>artifactId:/</code>. Then, the usual way to construct a path in URIs is used to point a resource.</para>
+            <itemizedlist>
+                <listitem><para>if we want to reference the <code>net.sf.saxon.Transform</code> class in Saxon-HE 9.8.0-7 dependency, we'd construct <code>Saxon-HE:/net/sf/saxon/Transformer.class</code></para></listitem>
+                <listitem><para>if we want to reference the <filename>file-utils.xsl</filename> in <code>(eu.els.common:xslLibrary:3.1.7)</code>, we'd use <code>xslLibrary:/file-utils.xsl</code></para></listitem>
+            </itemizedlist>
+            <para>As it is common to change a dependency version, version is not included in URI ; hence, when changing a dependency version, code is not impacted.</para>
+            <para>If we declare xf-sas dependency :
+            <programlisting language="xml"><![CDATA[
+<dependency>
+  <groupId>eu.lefebvre-sarrut.sie.xmlFirst</groupId>
+  <artifactId>xf-sas</artifactId>
+  <version>3.1.7</version>
+</dependency>]]></programlisting></para>
+            <para>...we may have xsl with imports based on this URI syntax :
+            <programlisting language="xml"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    exclude-result-prefixes="#all"
+    version="3.0">
+  <xsl:import
+    href="xf-sas:/xf-sas/efl/mem2ee.alphamem.xsl"/>]]></programlisting></para>
+            <para>At <code>initialize</code> Maven phase, so in very beginnning of build lifecycle, we do use a <glossterm>catalogBuilder-maven-plugin</glossterm><footnote><para><link xlink:href="https://github.com/cmarchand/maven-catalogBuilder-plugin"></link></para></footnote> that generates a catalog, based on dependencies declared in pom.xml. This catalog is generated at each build, so always denotes dependencies declaration available in project descriptor. It declares <code>rewriteURI</code> and <code>rewriteSystem</code> entries, that maps protocols to jar locations.</para>
+            <para>The catalog includes all dependencies that do contains XML resources, but also other dependencies, including the ones that do not concern XML processing ; this could be filtered in a future enhancement to make catalogs lighter.</para>
+            <programlisting language="xml"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE catalog PUBLIC
+  "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN"
+  "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+  <catalog
+    xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+    <rewriteURI uriStartString="xsl-sas:/"
+      rewritePrefix=
+    "jar:file:/home/cm/.m2/repo/eu/els/xf-sas/1.2.1/xf-sas-1.2.1.jar!/"/>
+    <rewriteSystem uriStartString="xsl-sas:/"
+      rewritePrefix=
+    "jar:file:/home/cm/.m2/repo/eu/els/xf-sas/1.2.1/xf-sas-1.2.1.jar!/"/>
+</catalog>]]></programlisting>
+            <para>This catalog is then used by all XML tools, including Maven plugins that do manipulate XML files. We have choosen to have, in all projects, such a catalog, named <filename>catalog.xml</filename>, at project's root. We can then define in oXygen, that we have to use a catalog named <filename>${pdu}/catalog.xml</filename> ; this allows oXygen to access all resources we reference in our code, including resources located into jar files, thanks to Java supporting URI like <code>jar:file:/path/to/library.jar!/resource/to/file.xsl</code></para>
+            <para>Developing in oXygen is the main reason of resolving resources to jar files, as oXygen is not maven aware, and do not loads dependency jars in project classpath. When running in Maven, all resources are in classpath, and could be directly access from their pat-part of URI, in classpath.</para>
+            <para>This kind of resource references via URI mecanisms is quite common in XML world, and referencing resources from external dependencies can be - and is - generalized to all types :</para>
+            <itemizedlist>
+                <listitem><para>DOCTYPE definitions, references to DTD via SYSTEM declarations (we do not use PUBLIC definitions)</para></listitem>
+                <listitem><para>imported or included XSL</para></listitem>
+                <listitem><para>XML schema imports, includes, redefinitions</para></listitem>
+                <listitem><para>RelaxNG, NVDL</para></listitem>
+                <listitem><para>XQuery import module namespace</para></listitem>
+            </itemizedlist>
+            <para>We have choosen to use a protocol based only on <code>artifactId:/</code>. But catalogBuilder‑maven‑plugin is able to use others patterns, based on groupId and artifactId, with a user-defined syntax.</para>
+        </sect2>
+        <sect2>
+            <title>Unit tests</title>
+            <para>Once dependency management solved, we tried to run unit tests each time a build is performed. We do use XSpec as a unit test framework. When we started this work, two XSpec Maven plugins were available : one written by Adam Retter, one by Daisy Consortium, maintained by Romain Deltour, both open source and available on Github.</para>
+            <para>Maven has a standard way to organize directories in a project :</para>
+            <screen><![CDATA[    .
+    └── src
+        ├── main
+        │   └── java
+        └── test
+            └── java]]></screen>
+            <para>We decided that our XSL code will be put under <filename>src/main/xsl</filename>, and XSpec files under <filename>src/test/xspec</filename>. So, our project structure is always :</para>
+            <screen><![CDATA[    .
+    └── src
+        ├── main
+        │   └── xsl
+        └── test
+            └── xspec]]></screen>
+            <para>XSpec Maven Plugin looks recursively in <filename>src/test/xspec</filename> for <filename>*.xspec</filename> files. Each file is executed, accordingly to XSpec implementation, and a report is generated. In Maven, all generated files are generated in <filename>target/</filename> directory. XSpec report file are generated in <filename>target/xspec‑report</filename>. If one XSpec unit test fails, all the plugin execution fails, <glossterm>test</glossterm> phase fails, and build fails. Plugin is bound to test phase, but can also be bound to <glossterm>integration‑tests</glossterm> if required.</para>
+            <para>Plugin has been largely enhanced to support catalogs, to allow to choose which Saxon product to use to perform tests, and reporting has been changed to be more useful. XSpec for XQuery support was not in Adam's Retter release, and has just been added ; but XSpec for Schematron support si still a work in progress.</para>
+            <para>As far as all unit tests do not succeed, we are not able to publish a release.</para>
+            <para>XSpec Maven Plugin<footnote><para><link xlink:href="https://github.com/xspec/xspec-maven-plugin-1/"></link></para></footnote> code has moved to XSpec organization, and is now maintained by the same team that maintains XSpec. XSpec implementation is now available as a Maven artifact, and this allows to deploy quickly XSpec corrections into XSpec Maven plugin. There is still some job to do : XSpec Maven Plugin is not able to run XSpec on Schematron, and JUnit reports are not generated.</para>
+        </sect2>
+        <sect2>
+            <title>Code generation</title>
+            <para>We have a grammar (RelaxNG) that has different distributions : one very strict, the other one 'lighter'. The lighter can easily be generated from the strict one, by applying a simple transformation. Instead of duplicating code, the strict grammar is released as an artifact, from its source code, but the lighter is generated from the strict one.</para>
+            <para>A new project declares a dependency on the strict grammar artifact, embeds XSL to transform strict grammar source files. At <glossterm>generate-sources</glossterm> phase, XSL are applied on strict source files, and this generates the 'lighter' grammar. Then generated sources are packaged, and deployed as a new artifact, with no source duplicated, or manually modified. We are able to distribute the ligther grammar as an artifact, without any source code, except the transformer.</para>
+            <para>We do use Maven XML Plugin<footnote><para><link xlink:href="http://www.mojohaus.org/xml-maven-plugin/"/></para></footnote> to apply XSL on RelaxNG source code, and to produce the 'lighter' grammar. It allows to embed Saxon as a XSLT 2.0 processor, and supports catalogs, so no enhancement were required to use this plugin.</para>
+            <para>At this time, we do not have a framework to perform unit tests on RelaxNG, but this could be done with other frameworks, like XMLUnit<footnote><para><link xlink:href="http://www.xmlunit.org/"/></para></footnote>. Job has not be done, due to lack of resources, but this is technically possible, and could easily be embeded in a maven plugin, bound to test phase.</para>
+            <para>Maven XML Plugin may be used to apply transformation on any XML source document, and is very suitable for generating sources.</para>
+        </sect2>
+        <sect2>
+            <title>Source code documentation</title>
+            <para>Java has a standard way to produce source code documentation : javadoc. This system is very popular, and has been adapted to various programming languages. oXygen has defined a grammar to add documentation to XSL, xd-doc<footnote><para><link xlink:href="https://www.oxygenxml.com/doc/versions/19.1/ug-editor/topics/XSLT-Stylesheet-documentation-support.html"/></para></footnote></para>
+            <para>oXygen provides tools to generate a developer-oriented documentation, in an HTML format ; unfortunately, this tool is not open source, and could not be used directly. We have created a xslDoc Maven Plugin<footnote><para><link xlink:href="https://github.com/cmarchand/xslDoc-maven-plugin"/></para></footnote> that generates XSL documentation. This plugin is a report plugin, and can be added to Maven site reports. When you ask Maven to generate project's site, XSL documentation is added to project's site.</para>
+            <para>We have also created such a plugin for XQuery documentation<footnote><para><link xlink:href="https://github.com/cmarchand/xqueryDoc-maven-plugin"/></para></footnote>, based on xquerydoc<footnote><para><link xlink:href="https://github.com/xquery/xquerydoc"/></para></footnote>. XQuery documentation is also generated as a site report when plugin is declared in pom.</para>
+            <programlisting language="xml"><![CDATA[
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>top.marchand.xml</groupId>
+        <artifactId>xslDoc-maven-plugin</artifactId>
+        <version>0.6</version>
+      </plugin>
+      <plugin>
+        <groupId>top.marchand.xml</groupId>
+        <artifactId>xquerydoc-maven-plugin</artifactId>
+        <version>0.1</version>
+      </plugin>
+    </plugins>
+  </reporting>]]></programlisting>
+            <para>XQuery files are expected to be located in <filename>src/main/xquery</filename>.</para>
+        </sect2>
+        <sect2>
+            <title>Compiling</title>
+            <para>It’s common that distributed code files differs from source code file. We could consider that transforming a source code file to a distributed code file is the compilation, whatever transforming is. Having distributed code transform, or "obfuscated", guarantees that it will never be modified in production environments. Mainly, we were interested in XSLT compilation. Thanks to XSL 3.0, we are now able to distribute compiled XSL files.</para>
+            <para>When compiling an XSL file that declares imports and includes, only one file is generated, all imports and includes are merged into the one that will be run. You have less files to distribute, and you will not forget to distribute a dependency file.</para>
+            <para>Saxon-EE is able to compile XSL files. We’ve created a XslCompiler Maven plugin<footnote><para><link xlink:href="https://github.com/cmarchand/xslcompiler-maven-plugin"/></para></footnote> that relies on Saxon-EE and that compiles XSL files from sources to <filename>target/</filename> directory. This plugin is still under evaluation, mainly for unit tests considerations.</para>
+            <para>Most of Xsl files are included or imported, but never directly run. Those files should not be compiled, i.e. should not have a distributed form ; this plugin requires developer to declare which Xsl source files must be compiled.</para>
+            <para>We have a problem in distributing compiled files : XSpec tests source files – uncompiled XSL files. XSpec implementation generates a XSL that includes the XSL we want to unit-test. Then this XSL is compiled (saved or not), and run. So, the compiled file that is tested is not the one that will be distributed.</para>
+            <para>Investigations on how to solve these problems have not been done ; but we could think to reference compiled XSL from XSpec file – if implementation allows it – or compiling generated XSpec XSL to a compiled form, and then running it ; all of this require talks with Saxonica, to know what can be done or not, what we can rely on, or not.</para>
+        </sect2>
+        <sect2>
+            <title>Packaging</title>
+            <para>Common packaging for a maven artifact is a jar file, that embeds only files from the project. The wide majority of our projects are published as jar files into repository manager. But these kind of jar files are not very suited to be deployed on a server. We have projects, which are only Java projects, that embeds a XSLT processor, a XProc processor, or gaulois-pipe, and all XML artifacts needed. Thoses projects delivers a jar file with all dependencies included, with a main-class entry in manifest, that allows to be run simply : <code>java -jar full-program-1.3.7.jar</code>. Such a jar is autonomous, and is very easy to deploy on  a server. In such a jar, all resources from all dependencies are put in the same jar. Catalog needs to be re-created for such a jar, as all resources are directly in classpath, and not split into many jar files. We use rewriteURI and rewriteSystem to map all artifact based protocols to a <glossterm><uri>cp:/</uri></glossterm> protocol, cp for classpath. We have written a Java protocol handler for this protocol, which load resources directly from classpath. This can only be used in a JVM where the whole resources are in classpath ; when developing in oXygen, this is not true, that’s why we map protocols to dependency jar files.</para>
+        </sect2>
+    </sect1>
+    <sect1>
+        <title>Future</title>
+        <para>Dependency management now works perfectly, and do not need enhancements anymore. Maybe some more entries in generated catalog file, but this should be the limit.</para>
+        <para>Documentation needs to be beautified ; mainly XSL documentation. oXygen has really done a great job, and it’s difficult to have something as beautifull as they produce, under a free and open source license. We still have some bugs, mainly on components identification, with <code>@use-when</code> attribute.</para>
+        <para>We are not able to generate documentation for grammars : mainly XML Schema and RelaxNG, and others like Schematron and NVDL ; we have some ideas, but not enough resources to put them in a useful plugin.</para>
+        <para>We hope other developers will publish their libraries as Maven artifacts ; hence, we could use them as dependencies ; today, we must put a lot of pom configuration to download source files (or zip files, or anything else), package them into an artifact, and deploy it into each local repository. It’s not very easy, and requires Maven specialists. We would be very interested if skeleton organization, for example, were able to provide skeleton implementation as a maven artifact.</para>
+        <para>A similar approach could be used for a gradle build. Gradle also allows to declare a list of dependencies. It should be easy to write a plugin that generates a catalog. But it should probably require to write as many plugins as we had to for Maven.</para>
+    </sect1>
+    <glossary>
+        <title>Glossary</title>
+        <glossentry>
+            <glossterm>aertifact</glossterm>
+            <glossdef><para>An artifact is something that is either produced or used by a project. Examples of artifacts produced by Maven for a project include: JARs, source and binary distributions, WARs. Each artifact is uniquely identified by a group id and an artifact ID which is unique within a group.</para></glossdef>
+        </glossentry>
+        <glossentry>
+            <glossterm>groupId</glossterm>
+            <glossdef><para>A group ID is a universally unique identifier for a project. While this is often just the project name (eg. commons-collections), it is helpful to use a fully-qualified package name to distinguish it from other projects with a similar name (eg. org.apache.maven, net.sf.saxon, top.marchand.maven).</para></glossdef>
+        </glossentry>
+        <glossentry>
+            <glossterm>artifactId</glossterm>
+            <glossdef><para>An artifact ID is a unique identifer of an artifact within a group ID.</para></glossdef>
+        </glossentry>
+        <glossentry>
+            <glossterm>version</glossterm>
+            <glossdef><para>The version of an artifact. Usually, there are snaphsot versions, which ends with <code>-SNAPSHOT</code>, and that denote a work in progress artifact ; all other version are release, and commit how produced this version is strictly known.</para></glossdef>
+        </glossentry>
+        <glossentry>
+            <glossterm>dependency</glossterm>
+            <glossdef><para>A typical Java project relies on libraries to build and/or run. Those are called “dependencies” inside Maven. Those dependencies are usually other projects’ JAR artifacts, but are referenced by the POM that describes them.</para></glossdef>
+        </glossentry>
+        <glossentry>
+            <glossterm>pom.xml</glossterm>
+            <glossdef><para>The file where project build is described. pom is for Project Object Model. It defines which dependency are required, which plugins are used to build project, and their configuration. See <link xlink:href="https://maven.apache.org/pom.html"/>.</para></glossdef>
+        </glossentry>
+    </glossary>
+    <acknowledgements>
+        <title>Demo</title>
+        <para>During XML Prague 2018 talk, Matthieu has made a demo based on this project : <link xlink:href="https://github.com/mricaud/xml-prague-2018-demo_myXMLproject"/></para>
+    </acknowledgements>
+</article>
