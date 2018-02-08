@@ -41,7 +41,8 @@
                     <listitem><para>we want to be able to separate each chunk of code, and identify each version with no ambiquity <emphasis>to produce deliveries that can be identifed as deliveries and not as source code</emphasis>. Let's call this an <glossterm>artifact</glossterm></para></listitem>
                     <listitem><para>we must be able to distinguish a stable release (an artifact we know exactly which commit of code has produced it), from a development one (an artifact that is still under development, and that may change from one day to another)</para></listitem>
                     <listitem><para>we must ensure that a release artifact can not be re-build : i.e. a release artifact can not be modified</para></listitem>
-                    <listitem><para>when we re-use a piece of existing code, we want to reference it, through a release artifact reference ; hence, we are sure the referenced code will never be modified we want every artifact version being accessible from any other project easily</para></listitem>
+                    <listitem><para>when we re-use a piece of existing code, we want to reference it, through a release artifact reference ; hence, we are sure the referenced code will never be modified</para></listitem>
+                    <listitem><para>we want every artifact version being accessible from any other project easily</para></listitem>
                     <listitem><para>we need to publish build artifacts to a central repository ; this central repository will be then used to get artifacts when needed</para></listitem>
                 </itemizedlist>
             </listitem>
@@ -52,7 +53,7 @@
                     <listitem><para>a "program" is usually an aggregate of many artifacts, with a shell</para></listitem>
                 </itemizedlist>
             </listitem>
-            <listitem><para>last but not least, we want all these requirements to work the same way for all our editorial languages : XSLT, XQUERY, SCHEMATRON, DTD, XSD Schema, Relax NG, … and Java ! All programs we deploy are Java programs, either run directly, or launch by an orchestrator. Finally, we deploy Java programs, who run XSLT, Xquery, or other XML languages.</para></listitem>
+            <listitem><para>last but not least, we want all these requirements to work the same way for all our editorial languages : XSLT, XQUERY, SCHEMATRON, DTD, XSD Schema, Relax NG, … and Java ! All programs we deploy are Java programs, either run directly, or launch by an orchestrator. Finally, we deploy Java programs, who run XSLT, XQuery, or other XML languages.</para></listitem>
         </itemizedlist>
         <para>We also had some wishes :</para>
         <itemizedlist>
@@ -170,7 +171,7 @@
     "jar:file:/home/cm/.m2/repo/eu/els/xf-sas/1.2.1/xf-sas-1.2.1.jar!/"/>
 </catalog>]]></programlisting>
             <para>This catalog is then used by all XML tools, including Maven plugins that do manipulate XML files. We have choosen to have, in all projects, such a catalog, named <filename>catalog.xml</filename>, at project's root. We can then define in oXygen, that we have to use a catalog named <filename>${pdu}/catalog.xml</filename> ; this allows oXygen to access all resources we reference in our code, including resources located into jar files, thanks to Java supporting URI like <code>jar:file:/path/to/library.jar!/resource/to/file.xsl</code></para>
-            <para>Developing in oXygen is the main reason of resolving resources to jar files, as oXygen is not maven aware, and do not loads dependency jars in project classpath. When running in Maven, all resources are in classpath, and could be directly access from their pat-part of URI, in classpath.</para>
+            <para>Developing in oXygen is the main reason of resolving resources to jar files, as oXygen is not maven aware, and do not loads dependency jars in project classpath. When running in Maven, all resources are in classpath, and could be directly access from their path-part of URI, in classpath.</para>
             <para>This kind of resource references via URI mecanisms is quite common in XML world, and referencing resources from external dependencies can be - and is - generalized to all types :</para>
             <itemizedlist>
                 <listitem><para>DOCTYPE definitions, references to DTD via SYSTEM declarations (we do not use PUBLIC definitions)</para></listitem>
